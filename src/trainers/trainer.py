@@ -8,6 +8,8 @@ from tqdm import tqdm
 
 
 class Trainer:
+    """학습/검증 루프와 체크포인트 저장을 담당한다."""
+
     def __init__(
         self,
         model: nn.Module,
@@ -28,6 +30,7 @@ class Trainer:
         self.scaler = GradScaler(enabled=use_amp)
 
     def train_epoch(self, loader: DataLoader) -> float:
+        """한 epoch 동안 학습하고 평균 loss를 반환한다."""
         self.model.train()
         total_loss = 0.0
         for images, labels in tqdm(loader, desc="train"):
@@ -36,6 +39,7 @@ class Trainer:
             with autocast(enabled=self.scaler.is_enabled()):
                 embeddings = self.model(images)
                 loss = self.criterion(embeddings, labels)
+            # AMP가 꺼져 있으면 GradScaler는 일반 backward/step처럼 동작한다.
             self.scaler.scale(loss).backward()
             self.scaler.step(self.optimizer)
             self.scaler.update()
@@ -44,6 +48,7 @@ class Trainer:
 
     @torch.no_grad()
     def eval_epoch(self, loader: DataLoader) -> float:
+        """검증 데이터셋의 평균 loss를 계산한다."""
         self.model.eval()
         total_loss = 0.0
         for images, labels in tqdm(loader, desc="val"):
@@ -54,6 +59,7 @@ class Trainer:
         return total_loss / len(loader)
 
     def save_checkpoint(self, epoch: int, val_loss: float) -> None:
+        """현재 epoch의 모델/옵티마이저 상태를 저장한다."""
         torch.save(
             {
                 "epoch": epoch,

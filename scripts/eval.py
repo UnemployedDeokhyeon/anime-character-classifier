@@ -1,4 +1,4 @@
-"""Build FAISS index and evaluate retrieval metrics."""
+"""FAISS 인덱스를 구성하고 검색 평가 지표를 계산한다."""
 import argparse
 
 import numpy as np
@@ -13,6 +13,7 @@ from src.utils import get_transforms
 
 
 def main():
+    """체크포인트에서 임베딩을 추출해 top-k accuracy와 mAP를 출력한다."""
     parser = argparse.ArgumentParser()
     parser.add_argument("--checkpoint", required=True)
     parser.add_argument("--data-root", default="data/processed")
@@ -41,6 +42,7 @@ def main():
     labels_arr = np.array(labels)
 
     retriever = AnimeRetriever(model)
+    # 평가용 인덱스는 전체 데이터셋 임베딩으로 즉석에서 구성한다.
     retriever.build_index(embeddings.copy(), [dataset.classes[l] for l in labels])
 
     retrieved = []

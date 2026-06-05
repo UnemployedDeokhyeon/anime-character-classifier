@@ -1,4 +1,4 @@
-"""Build and save FAISS retrieval index from a checkpoint."""
+"""체크포인트로부터 FAISS 검색 인덱스를 생성해 저장한다."""
 import argparse
 
 import numpy as np
@@ -12,6 +12,7 @@ from src.utils import get_transforms
 
 
 def main():
+    """데이터셋 전체 임베딩을 추출하고 라벨 이름과 함께 인덱싱한다."""
     parser = argparse.ArgumentParser()
     parser.add_argument("--checkpoint", required=True)
     parser.add_argument("--data-root", default="data/processed")

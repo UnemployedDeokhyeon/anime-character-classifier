@@ -1,12 +1,12 @@
-"""Transfer learning comparison across 5 backbones.
+"""5개 backbone의 전이 학습 성능을 비교한다.
 
-Strategy:
-  Phase 1 (5 epochs)  — backbone frozen, train classifier head only
-  Phase 2 (15 epochs) — full fine-tune with low LR
+전략:
+  Phase 1 (5 epochs)  — backbone을 고정하고 classifier head만 학습
+  Phase 2 (15 epochs) — 낮은 learning rate로 전체 fine-tune
 
-Outputs:
-  outputs/comparison/results.csv        — per-epoch metrics
-  outputs/comparison/summary.csv        — final comparison table
+출력:
+  outputs/comparison/results.csv        — epoch별 지표
+  outputs/comparison/summary.csv        — 최종 비교표
   outputs/comparison/loss_curve.png
   outputs/comparison/acc_curve.png
   outputs/comparison/summary_bar.png
@@ -29,7 +29,7 @@ from src.utils import get_transforms, seed_everything
 matplotlib.rcParams["font.family"] = "Nanum Gothic"
 matplotlib.rcParams["axes.unicode_minus"] = False
 
-# ── Config ────────────────────────────────────────────────────────────────────
+# ── 설정 ─────────────────────────────────────────────────────────────────────
 MODELS = [
     ("EfficientNet-B7", "efficientnet_b7"),
     ("EfficientNet-B0", "efficientnet_b0"),
@@ -40,8 +40,8 @@ MODELS = [
 DATA_ROOT   = "data/processed"
 IMAGE_SIZE  = 224
 BATCH_SIZE  = 32
-PHASE1_EP   = 5     # frozen backbone
-PHASE2_EP   = 15    # full fine-tune
+PHASE1_EP   = 5     # backbone 고정 학습
+PHASE2_EP   = 15    # 전체 fine-tune
 LR_HEAD     = 1e-3
 LR_FINETUNE = 1e-4
 OUT_DIR     = Path("outputs/comparison")
@@ -50,12 +50,13 @@ SEED        = 42
 
 
 def build_model(backbone: str, num_classes: int) -> nn.Module:
+    """timm backbone 이름으로 분류 모델을 생성한다."""
     model = timm.create_model(backbone, pretrained=True, num_classes=num_classes)
     return model
 
 
 def freeze_backbone(model: nn.Module) -> None:
-    """Freeze all params except the classifier head."""
+    """classifier head를 제외한 모든 파라미터를 고정한다."""
     classifier_names = {"head", "classifier", "fc", "pre_logits"}
     for name, param in model.named_parameters():
         is_head = any(cn in name for cn in classifier_names)
@@ -63,6 +64,7 @@ def freeze_backbone(model: nn.Module) -> None:
 
 
 def unfreeze_all(model: nn.Module) -> None:
+    """모든 파라미터를 다시 학습 가능하게 만든다."""
     for param in model.parameters():
         param.requires_grad = True
 
@@ -74,6 +76,7 @@ def run_epoch(
     optimizer: torch.optim.Optimizer | None,
     device: torch.device,
 ) -> tuple[float, float]:
+    """학습 또는 검증 1 epoch를 실행하고 평균 loss와 accuracy를 반환한다."""
     training = optimizer is not None
     model.train(training)
     total_loss, correct, total = 0.0, 0, 0
@@ -102,6 +105,7 @@ def train_one_model(
     num_classes: int,
     device: torch.device,
 ) -> tuple[pd.DataFrame, dict]:
+    """단일 backbone에 대해 head 학습과 전체 fine-tune을 순서대로 수행한다."""
     model = build_model(backbone, num_classes).to(device)
 
     train_loader = DataLoader(train_ds, batch_size=BATCH_SIZE, shuffle=True,  num_workers=2)
@@ -110,7 +114,7 @@ def train_one_model(
     records      = []
     t0           = time.time()
 
-    # ── Phase 1: head only ───────────────────────────────────────────────────
+    # ── Phase 1: head만 학습 ─────────────────────────────────────────────────
     freeze_backbone(model)
     optimizer = torch.optim.AdamW(
         filter(lambda p: p.requires_grad, model.parameters()), lr=LR_HEAD
@@ -123,7 +127,7 @@ def train_one_model(
                         "train_acc": tr_acc,  "val_acc": va_acc})
         print(f"  [{ep:02d}|P1] loss={va_loss:.4f}  acc={va_acc:.4f}")
 
-    # ── Phase 2: full fine-tune ───────────────────────────────────────────────
+    # ── Phase 2: 전체 fine-tune ──────────────────────────────────────────────
     unfreeze_all(model)
     optimizer = torch.optim.AdamW(model.parameters(), lr=LR_FINETUNE, weight_decay=1e-4)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=PHASE2_EP)
@@ -151,6 +155,7 @@ def train_one_model(
 
 
 def plot_curves(df: pd.DataFrame, out_dir: Path) -> None:
+    """모델별 검증 loss/accuracy 곡선을 저장한다."""
     fig, axes = plt.subplots(1, 2, figsize=(14, 5))
     total_ep = PHASE1_EP + PHASE2_EP
 
@@ -177,6 +182,7 @@ def plot_curves(df: pd.DataFrame, out_dir: Path) -> None:
 
 
 def plot_summary(summary_df: pd.DataFrame, out_dir: Path) -> None:
+    """최종 성능, 학습 시간, 파라미터 수 비교 그래프를 저장한다."""
     fig, axes = plt.subplots(1, 3, figsize=(14, 4))
 
     for ax, col, title, fmt in zip(
@@ -198,6 +204,7 @@ def plot_summary(summary_df: pd.DataFrame, out_dir: Path) -> None:
 
 
 def main() -> None:
+    """비교 실험 전체를 실행하고 CSV/그래프 산출물을 저장한다."""
     seed_everything(SEED)
     OUT_DIR.mkdir(parents=True, exist_ok=True)
 

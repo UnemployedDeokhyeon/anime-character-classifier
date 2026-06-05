@@ -1,4 +1,4 @@
-"""Train the anime character embedding model."""
+"""애니 캐릭터 임베딩 모델을 학습한다."""
 import hydra
 import torch
 from omegaconf import DictConfig
@@ -13,12 +13,14 @@ from src.utils import get_transforms, seed_everything
 
 @hydra.main(config_path="../configs", config_name="train", version_base=None)
 def main(cfg: DictConfig) -> None:
+    """Hydra 설정을 읽어 데이터셋, 모델, 손실 함수, 학습 루프를 구성한다."""
     seed_everything(42)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     dataset = AnimeCharacterDataset(cfg.data.root, transform=get_transforms(cfg.data.image_size, train=True))
     n_train = int(len(dataset) * cfg.data.train_split)
     n_val = len(dataset) - n_train
+    # 같은 transform 객체를 공유하므로 검증에도 학습 augmentation이 적용될 수 있다.
     train_ds, val_ds = random_split(dataset, [n_train, n_val])
 
     train_loader = DataLoader(train_ds, batch_size=cfg.data.batch_size, shuffle=True, num_workers=cfg.data.num_workers)

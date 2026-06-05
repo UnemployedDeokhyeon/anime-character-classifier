@@ -1,7 +1,7 @@
-"""Build metadata CSV from data/processed/ folder structure.
+"""data/processed/ 폴더 구조를 기준으로 메타데이터 CSV를 생성한다.
 
-Expected folder name format:  {캐릭터} - {애니메이션}
-Example:                       Ichigo - 블리치
+기대하는 폴더명 형식:  {캐릭터} - {애니메이션}
+예시:                 Ichigo - 블리치
 """
 import unicodedata
 from pathlib import Path
@@ -13,6 +13,7 @@ IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".webp"}
 
 
 def build_metadata(data_dir: str | Path = "data/processed") -> pl.DataFrame:
+    """캐릭터 폴더와 이미지 파일을 순회해 메타데이터 테이블을 만든다."""
     data_dir = Path(data_dir)
 
     rows: list[dict] = []
@@ -20,7 +21,7 @@ def build_metadata(data_dir: str | Path = "data/processed") -> pl.DataFrame:
         if not folder.is_dir() or folder.name.startswith("."):
             continue
 
-        # macOS stores filenames as NFD — normalize to NFC for correct Korean rendering
+        # macOS의 NFD 파일명을 NFC로 맞춰 한글 표시 깨짐을 방지한다.
         nfc_name = unicodedata.normalize("NFC", folder.name)
         parts = nfc_name.split(" - ", maxsplit=1)
         character = parts[0].strip()
@@ -46,6 +47,7 @@ def save_metadata(
     data_dir: str | Path = "data/processed",
     out_path: str | Path = "data/processed/metadata.csv",
 ) -> pl.DataFrame:
+    """메타데이터를 CSV로 저장하고 기본 통계를 출력한다."""
     df = build_metadata(data_dir)
     Path(out_path).parent.mkdir(parents=True, exist_ok=True)
     df.write_csv(out_path)
