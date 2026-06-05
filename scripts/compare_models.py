@@ -50,6 +50,7 @@ SEED        = 42
 
 
 def build_model(backbone: str, num_classes: int) -> nn.Module:
+    """Create a classification model for the chosen backbone."""
     model = timm.create_model(backbone, pretrained=True, num_classes=num_classes)
     return model
 
@@ -63,6 +64,7 @@ def freeze_backbone(model: nn.Module) -> None:
 
 
 def unfreeze_all(model: nn.Module) -> None:
+    """Enable gradients for all model parameters."""
     for param in model.parameters():
         param.requires_grad = True
 
@@ -74,6 +76,7 @@ def run_epoch(
     optimizer: torch.optim.Optimizer | None,
     device: torch.device,
 ) -> tuple[float, float]:
+    """Run one training or validation pass and return loss/accuracy."""
     training = optimizer is not None
     model.train(training)
     total_loss, correct, total = 0.0, 0, 0
@@ -102,6 +105,7 @@ def train_one_model(
     num_classes: int,
     device: torch.device,
 ) -> tuple[pd.DataFrame, dict]:
+    """Train a single backbone through two fine-tuning phases."""
     model = build_model(backbone, num_classes).to(device)
 
     train_loader = DataLoader(train_ds, batch_size=BATCH_SIZE, shuffle=True,  num_workers=2)
@@ -151,6 +155,7 @@ def train_one_model(
 
 
 def plot_curves(df: pd.DataFrame, out_dir: Path) -> None:
+    """Plot validation loss/accuracy curves for all backbones."""
     fig, axes = plt.subplots(1, 2, figsize=(14, 5))
     total_ep = PHASE1_EP + PHASE2_EP
 
@@ -177,6 +182,7 @@ def plot_curves(df: pd.DataFrame, out_dir: Path) -> None:
 
 
 def plot_summary(summary_df: pd.DataFrame, out_dir: Path) -> None:
+    """Plot bar charts summarizing the final comparison."""
     fig, axes = plt.subplots(1, 3, figsize=(14, 4))
 
     for ax, col, title, fmt in zip(
@@ -198,6 +204,7 @@ def plot_summary(summary_df: pd.DataFrame, out_dir: Path) -> None:
 
 
 def main() -> None:
+    """Run the full comparison experiment and save outputs."""
     seed_everything(SEED)
     OUT_DIR.mkdir(parents=True, exist_ok=True)
 

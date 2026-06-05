@@ -6,6 +6,7 @@ from torchvision import transforms
 
 
 def seed_everything(seed: int = 42) -> None:
+    """Seed Python, NumPy, and PyTorch RNGs for reproducibility."""
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
@@ -14,6 +15,7 @@ def seed_everything(seed: int = 42) -> None:
 
 
 def get_transforms(image_size: int = 224, train: bool = True) -> transforms.Compose:
+    """Return torchvision transforms for train or evaluation."""
     if train:
         return transforms.Compose([
             transforms.Resize((image_size + 32, image_size + 32)),

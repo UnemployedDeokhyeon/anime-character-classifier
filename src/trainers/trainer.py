@@ -8,6 +8,8 @@ from tqdm import tqdm
 
 
 class Trainer:
+    """Training helper that runs epochs and manages checkpoints."""
+
     def __init__(
         self,
         model: nn.Module,
@@ -18,6 +20,7 @@ class Trainer:
         checkpoint_dir: str = "checkpoints",
         use_amp: bool = True,
     ):
+        """Store training components and AMP configuration."""
         self.model = model.to(device)
         self.criterion = criterion.to(device)
         self.optimizer = optimizer
@@ -28,6 +31,7 @@ class Trainer:
         self.scaler = GradScaler(enabled=use_amp)
 
     def train_epoch(self, loader: DataLoader) -> float:
+        """Run one training epoch and return average loss."""
         self.model.train()
         total_loss = 0.0
         for images, labels in tqdm(loader, desc="train"):
@@ -44,6 +48,7 @@ class Trainer:
 
     @torch.no_grad()
     def eval_epoch(self, loader: DataLoader) -> float:
+        """Run one validation epoch and return average loss."""
         self.model.eval()
         total_loss = 0.0
         for images, labels in tqdm(loader, desc="val"):
@@ -54,6 +59,7 @@ class Trainer:
         return total_loss / len(loader)
 
     def save_checkpoint(self, epoch: int, val_loss: float) -> None:
+        """Persist model/optimizer state for the given epoch."""
         torch.save(
             {
                 "epoch": epoch,

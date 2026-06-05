@@ -13,6 +13,7 @@ from src.utils import get_transforms
 
 
 def main():
+    """Evaluate retrieval metrics using a trained checkpoint."""
     parser = argparse.ArgumentParser()
     parser.add_argument("--checkpoint", required=True)
     parser.add_argument("--data-root", default="data/processed")

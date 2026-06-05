@@ -13,14 +13,16 @@ class AnimeRetriever:
     """FAISS-backed retrieval: query image → top-k matching characters."""
 
     def __init__(self, model: EfficientNetEmbedder, embedding_dim: int = 512):
+        """Prepare retrieval transforms and an empty FAISS index."""
         self.model = model
         self.model.eval()
         self.transform = get_transforms(train=False)
         self.index = faiss.IndexFlatIP(embedding_dim)  # inner product = cosine on L2-normed vecs
         self.labels: list[str] = []
-        
+
     # 인덱스 구축
     def build_index(self, embeddings: np.ndarray, labels: list[str]) -> None:
+        """Reset and populate the FAISS index with labeled embeddings."""
         self.index.reset()
         faiss.normalize_L2(embeddings)
         self.index.add(embeddings)
@@ -28,6 +30,7 @@ class AnimeRetriever:
         
     # 쿼리 검색
     def search(self, image_path: str | Path, top_k: int = 10) -> list[tuple[str, float]]:
+        """Embed a query image and return top-k label/score pairs."""
         image = Image.open(image_path).convert("RGB")
         tensor = self.transform(image).unsqueeze(0)
         embedding = self.model.encode(tensor).cpu().numpy()
@@ -36,7 +39,9 @@ class AnimeRetriever:
         return [(self.labels[i], float(scores[0][rank])) for rank, i in enumerate(indices[0])]
 
     def save(self, path: str | Path) -> None:
+        """Serialize the FAISS index to disk."""
         faiss.write_index(self.index, str(path))
 
     def load(self, path: str | Path) -> None:
+        """Load a FAISS index from disk."""
         self.index = faiss.read_index(str(path))

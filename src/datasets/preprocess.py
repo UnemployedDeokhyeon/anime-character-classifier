@@ -13,6 +13,7 @@ IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".webp"}
 
 
 def build_metadata(data_dir: str | Path = "data/processed") -> pl.DataFrame:
+    """Scan the processed dataset folders and return a metadata table."""
     data_dir = Path(data_dir)
 
     rows: list[dict] = []
@@ -46,6 +47,7 @@ def save_metadata(
     data_dir: str | Path = "data/processed",
     out_path: str | Path = "data/processed/metadata.csv",
 ) -> pl.DataFrame:
+    """Build metadata and persist it as a CSV file."""
     df = build_metadata(data_dir)
     Path(out_path).parent.mkdir(parents=True, exist_ok=True)
     df.write_csv(out_path)

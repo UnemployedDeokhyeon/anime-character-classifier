@@ -20,6 +20,7 @@ class ArcFaceLoss(nn.Module):
         self.mm = math.sin(math.pi - margin) * margin
 
     def forward(self, embeddings: torch.Tensor, labels: torch.Tensor) -> torch.Tensor:
+        """Compute ArcFace loss for a batch of embeddings and labels."""
         embeddings = F.normalize(embeddings, dim=-1)
         weight = F.normalize(self.weight, dim=-1)
         cos_theta = F.linear(embeddings, weight)

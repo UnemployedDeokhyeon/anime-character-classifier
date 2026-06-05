@@ -10,7 +10,13 @@ class EfficientNetEmbedder(nn.Module):
     85.08% top-1 accuracy on anime character face classification.
     """
 
-    def __init__(self, backbone: str = "efficientnet_b7", embedding_dim: int = 512, pretrained: bool = True):
+    def __init__(
+        self,
+        backbone: str = "efficientnet_b7",
+        embedding_dim: int = 512,
+        pretrained: bool = True,
+    ):
+        """Initialize the backbone and projection head."""
         super().__init__()
         self.backbone = timm.create_model(backbone, pretrained=pretrained, num_classes=0)
         in_features = self.backbone.num_features
@@ -22,10 +28,12 @@ class EfficientNetEmbedder(nn.Module):
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Compute embeddings for a batch of images."""
         features = self.backbone(x)
         return self.projector(features)
 
     def encode(self, x: torch.Tensor) -> torch.Tensor:
+        """Return L2-normalized embeddings without gradient tracking."""
         with torch.no_grad():
             emb = self.forward(x)
             return nn.functional.normalize(emb, dim=-1)

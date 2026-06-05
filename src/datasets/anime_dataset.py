@@ -17,6 +17,7 @@ class AnimeCharacterDataset(Dataset):
     """
 
     def __init__(self, root: str, transform=None):
+        """Index images under the root directory."""
         self.root = Path(root)
         self.transform = transform
         self.classes = sorted([d.name for d in self.root.iterdir() if d.is_dir()])
@@ -29,9 +30,11 @@ class AnimeCharacterDataset(Dataset):
                     self.samples.append((img_path, self.class_to_idx[cls]))
 
     def __len__(self) -> int:
+        """Return total number of samples."""
         return len(self.samples)
 
     def __getitem__(self, idx: int) -> tuple[torch.Tensor, int]:
+        """Load and return a transformed image tensor and label index."""
         path, label = self.samples[idx]
         image = Image.open(path).convert("RGB")
         if self.transform:

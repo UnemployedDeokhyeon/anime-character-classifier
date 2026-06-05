@@ -13,6 +13,7 @@ from src.utils import get_transforms, seed_everything
 
 @hydra.main(config_path="../configs", config_name="train", version_base=None)
 def main(cfg: DictConfig) -> None:
+    """Train the embedding model using Hydra configuration."""
     seed_everything(42)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 

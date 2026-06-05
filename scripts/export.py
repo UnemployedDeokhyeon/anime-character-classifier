@@ -12,6 +12,7 @@ from src.utils import get_transforms
 
 
 def main():
+    """Export FAISS index from a trained checkpoint."""
     parser = argparse.ArgumentParser()
     parser.add_argument("--checkpoint", required=True)
     parser.add_argument("--data-root", default="data/processed")
