@@ -6,11 +6,11 @@ from torch.utils.data import Dataset
 
 
 class AnimeCharacterDataset(Dataset):
-    """ImageFolder-style dataset for anime character images.
+    """캐릭터별 폴더 구조를 ImageFolder 방식으로 읽는 데이터셋.
 
-    Expected layout:
+    기대하는 디렉터리 구조:
         root/
-          <character_name>/
+          <캐릭터명>/
             img001.jpg
             img002.jpg
             ...
@@ -25,6 +25,7 @@ class AnimeCharacterDataset(Dataset):
         self.samples: list[tuple[Path, int]] = []
         for cls in self.classes:
             for img_path in (self.root / cls).iterdir():
+                # 학습 가능한 이미지 확장자만 샘플 목록에 등록한다.
                 if img_path.suffix.lower() in {".jpg", ".jpeg", ".png", ".webp"}:
                     self.samples.append((img_path, self.class_to_idx[cls]))
 

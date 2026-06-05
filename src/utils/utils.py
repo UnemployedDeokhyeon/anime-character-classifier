@@ -6,6 +6,7 @@ from torchvision import transforms
 
 
 def seed_everything(seed: int = 42) -> None:
+    """재현 가능한 실험을 위해 주요 난수 시드를 고정한다."""
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
@@ -14,6 +15,7 @@ def seed_everything(seed: int = 42) -> None:
 
 
 def get_transforms(image_size: int = 224, train: bool = True) -> transforms.Compose:
+    """학습/추론 단계에 맞는 이미지 전처리 파이프라인을 반환한다."""
     if train:
         return transforms.Compose([
             transforms.Resize((image_size + 32, image_size + 32)),
