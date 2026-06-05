@@ -34,7 +34,10 @@ class AnimeCharacterDataset(Dataset):
 
     def __getitem__(self, idx: int) -> tuple[torch.Tensor, int]:
         path, label = self.samples[idx]
-        image = Image.open(path).convert("RGB")
+        image = Image.open(path)
+        if image.mode == "P" and "transparency" in image.info:
+            image = image.convert("RGBA")
+        image = image.convert("RGB")
         if self.transform:
             image = self.transform(image)
         return image, label
