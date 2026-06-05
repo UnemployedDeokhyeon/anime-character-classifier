@@ -1,0 +1,39 @@
+.contexty
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg
+*.egg-info/
+dist/
+build/
+
+# Env
+.env
+.venv
+venv/
+env/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Data & model outputs
+data/raw/*
+data/processed/*
+data/external/*
+!data/**/.gitkeep
+checkpoints/*
+!checkpoints/.gitkeep
+outputs/logs/*
+outputs/figures/*
+outputs/predictions/*
+!outputs/**/.gitkeep
+
+# Misc
+.DS_Store
+.idea/
+.vscode/
+*.log
+wandb/

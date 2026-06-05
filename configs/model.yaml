@@ -1,0 +1,10 @@
+model:
+  backbone: efficientnet_b7       # EfficientNet-B7 (AniWho top-1: 85.08%)
+  pretrained: true
+  embedding_dim: 512
+  num_classes: null               # set at runtime from dataset
+
+retrieval:
+  index_type: flat                # faiss: flat | ivf | hnsw
+  metric: cosine
+  top_k: 10

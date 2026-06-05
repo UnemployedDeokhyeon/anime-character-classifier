@@ -1,0 +1,32 @@
+defaults:
+  - model: model
+
+data:
+  root: data/processed
+  image_size: 224
+  batch_size: 32
+  num_workers: 4
+  train_split: 0.8
+  val_split: 0.1
+
+training:
+  epochs: 30
+  lr: 1e-4
+  weight_decay: 1e-4
+  scheduler: cosine
+  warmup_epochs: 3
+  amp: true                       # automatic mixed precision
+
+loss:
+  type: arcface
+  scale: 30.0
+  margin: 0.5
+
+checkpoint:
+  dir: checkpoints/
+  save_top_k: 3
+  monitor: val/top1_acc
+
+logging:
+  project: anime-character-finder
+  use_wandb: true
