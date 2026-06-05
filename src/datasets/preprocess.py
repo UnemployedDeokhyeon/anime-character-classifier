@@ -3,6 +3,7 @@
 Expected folder name format:  {캐릭터} - {애니메이션}
 Example:                       Ichigo - 블리치
 """
+import unicodedata
 from pathlib import Path
 
 import polars as pl
@@ -19,8 +20,9 @@ def build_metadata(data_dir: str | Path = "data/processed") -> pl.DataFrame:
         if not folder.is_dir() or folder.name.startswith("."):
             continue
 
-        # parse "캐릭터 - 애니메이션"
-        parts = folder.name.split(" - ", maxsplit=1)
+        # macOS stores filenames as NFD — normalize to NFC for correct Korean rendering
+        nfc_name = unicodedata.normalize("NFC", folder.name)
+        parts = nfc_name.split(" - ", maxsplit=1)
         character = parts[0].strip()
         anime = parts[1].strip() if len(parts) == 2 else ""
 
