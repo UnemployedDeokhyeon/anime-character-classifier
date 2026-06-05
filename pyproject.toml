@@ -23,6 +23,7 @@ dependencies = [
     "pandas>=2.0.0",
     "matplotlib>=3.7.0",
     "seaborn>=0.12.0",
+    "polars>=1.41.2",
 ]
 
 [project.optional-dependencies]
@@ -34,6 +35,8 @@ dev = [
 
 [dependency-groups]
 dev = [
+    "ipykernel>=7.2.0",
+    "jupyterlab>=4.5.8",
     "pytest>=7.4.0",
     "pytest-cov>=4.1.0",
     "ruff>=0.1.0",
