@@ -29,6 +29,7 @@ checkpoints/*
 outputs/logs/*
 outputs/figures/*
 outputs/predictions/*
+outputs/comparison/*.pth
 !outputs/**/.gitkeep
 
 # Misc
