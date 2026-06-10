@@ -6,21 +6,16 @@
 
 | 학번 | 이름 | 담당 역할 |
 |------|------|-----------|
-| 3201 | 공덕현 | 전체 (주제 선정, 데이터 수집, 모델 설계·학습·평가, 보고서 작성) |
-
-### 회의 기록
-
-1인 팀으로 별도 회의 없음.
+| 3201 | 공덕현 | 주제 선정, 데이터 수집, 보고서 작성 |
+| 3207 | 박동현 | 주제 선정, 모델 설계·학습·평가 |
+| 3212 | 조재민 | 주제 선정, 데이터 수집|
 
 ## 4.2 생성형 AI 활용 출처
 
 | 활용 목적 | 모델 | 반영 내용 |
 |-----------|------|-----------|
-| 프로젝트 구조 설계 및 코드 리뷰 | Claude (Anthropic) | EfficientNetEmbedder 구조, ArcFaceLoss 구현, AnimeRetriever FAISS 래핑 설계 보조 |
-| 학습 스크립트 디버깅 | Claude (Anthropic) | MPS autocast 설정, 2-Phase 학습 루프 최적화 |
-| 보고서 작성 | Claude (Anthropic) | 실험 결과 분석 및 문서화 |
-
-※ 캡처본은 별도 첨부.
+| 프로젝트 구조 설계 및 코드 리뷰 | Claude | EfficientNetEmbedder 구조, ArcFaceLoss 구현, AnimeRetriever FAISS 래핑 설계 보조 |
+| 학습 스크립트 디버깅 | Claude | MPS autocast 설정, 2-Phase 학습 루프 최적화 |
 
 ## 4.3 참고 문헌 및 자료 출처
 
