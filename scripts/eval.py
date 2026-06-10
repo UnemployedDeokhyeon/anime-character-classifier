@@ -16,16 +16,20 @@ def main():
     """체크포인트에서 임베딩을 추출해 top-k accuracy와 mAP를 출력한다."""
     parser = argparse.ArgumentParser()
     parser.add_argument("--checkpoint", required=True)
+    parser.add_argument("--backbone", default="efficientnet_b7", help="timm 백본 모델명")
     parser.add_argument("--data-root", default="data/processed")
     parser.add_argument("--image-size", type=int, default=224)
     parser.add_argument("--top-k", type=int, default=10)
     args = parser.parse_args()
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    ckpt = torch.load(args.checkpoint, map_location=device)
+    raw = torch.load(args.checkpoint, map_location=device, weights_only=False)
 
-    model = EfficientNetEmbedder()
-    model.load_state_dict(ckpt["model_state"])
+    model = EfficientNetEmbedder(backbone=args.backbone, pretrained=False)
+    if isinstance(raw, dict) and "model_state" in raw:
+        model.load_state_dict(raw["model_state"])
+    else:
+        model.backbone.load_state_dict(raw, strict=False)
     model.to(device).eval()
 
     dataset = AnimeCharacterDataset(args.data_root, transform=get_transforms(args.image_size, train=False))

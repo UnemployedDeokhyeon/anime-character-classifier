@@ -16,6 +16,20 @@ from PIL import Image
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from matplotlib import font_manager
+
+# 한글 폰트 설정 (macOS Apple SD Gothic Neo 우선, 없으면 시스템 fallback)
+_KO_FONT_PATHS = [
+    "/System/Library/Fonts/AppleSDGothicNeo.ttc",
+    "/System/Library/Fonts/NanumGothic.ttf",
+]
+_KO_FONT_PROP = None
+for _fp in _KO_FONT_PATHS:
+    if Path(_fp).exists():
+        font_manager.fontManager.addfont(_fp)
+        _KO_FONT_PROP = font_manager.FontProperties(fname=_fp, size=8)
+        plt.rcParams["axes.unicode_minus"] = False
+        break
 
 from src.models import EfficientNetEmbedder
 from src.utils import get_transforms
@@ -61,7 +75,8 @@ def draw_grid(
 
     def show(ax, path: Path, title: str, border_color: str | None = None) -> None:
         ax.imshow(Image.open(path).convert("RGB"))
-        ax.set_title(title, fontsize=8, pad=4)
+        title_kw = {"fontproperties": _KO_FONT_PROP, "pad": 4} if _KO_FONT_PROP else {"fontsize": 8, "pad": 4}
+        ax.set_title(title, **title_kw)
         ax.axis("off")
         if border_color:
             for spine in ax.spines.values():
