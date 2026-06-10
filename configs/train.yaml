@@ -8,6 +8,8 @@ data:
   num_workers: 4
   train_split: 0.8
   val_split: 0.1
+  min_image_size: 64        # 이 픽셀 미만 이미지는 학습에서 제외
+  random_erasing_p: 0.2     # RandomErasing 적용 확률 (0이면 비활성화)
 
 training:
   epochs: 30
