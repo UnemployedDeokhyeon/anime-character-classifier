@@ -126,3 +126,47 @@ results = retriever.search("query.jpg", top_k=5)
 ### 모델 비교 바차트
 
 ![비교 요약](../outputs/comparison/summary.png)
+
+## 2.4 Retrieval 검색 성능 평가
+
+### 평가 방법
+
+분류 정확도(2.3)와 별개로, FAISS 기반 검색이 실제로 올바른 캐릭터를 찾아오는지 정량·정성 평가를 수행했다.
+
+- **평가 스크립트**: `scripts/eval.py`, `scripts/demo.py`
+- **Query/Gallery 분리**: 전체 데이터셋에서 무작위 쿼리 이미지를 추출하고 나머지를 gallery로 구성 — query가 gallery에 포함되면 자기 자신이 rank-1에 trivially 등장하는 self-match 오염이 발생하므로 반드시 분리
+- **검색 방식**: 쿼리 임베딩(L2 정규화) → `FAISS IndexFlatIP` 코사인 유사도 검색 → top-k 반환
+- **지표**:
+  - **Top-1 Accuracy**: 검색 결과 1위가 정답 캐릭터인 비율
+  - **Top-5 Accuracy**: 검색 결과 1~5위 안에 정답이 포함된 비율
+  - **mAP**: Mean Average Precision — 순위 품질까지 반영한 종합 지표
+
+### 정량 평가 결과
+
+| 모델 | Top-1 Accuracy | Top-5 Accuracy | mAP |
+|------|:-:|:-:|:-:|
+| **EfficientNet-B0** | **79.26%** | **93.92%** | **78.27%** |
+| EfficientNet-B4 | 73.25% | 92.74% | 71.83% |
+
+- B0이 전 지표에서 B4를 앞섬. 1,432장의 소규모 데이터에서 B4(17.6M 파라미터)는 과소적합 경향.
+- Top-5가 93~94%로 높음 — 정답 캐릭터가 상위 5개 안에는 거의 항상 포함됨.
+
+### 검색 결과 시각화
+
+`scripts/demo.py`로 생성한 그리드: **왼쪽** = 쿼리, **오른쪽 5장** = top-5 검색 결과 (초록 테두리=정답, 빨간 테두리=오답).
+
+**정답 사례 — 킬루아 (헌터×헌터, sim=0.996)**
+
+![킬루아 검색 결과](../outputs/retrieval_demo/killua_retrieval.png)
+
+최고 유사도 0.996으로 5개 전부 킬루아로 정확히 검색됨.
+
+**정답 사례 — 를르슈 (코드 기아스)**
+
+![를르슈 검색 결과](../outputs/retrieval_demo/lelouch_retrieval.png)
+
+**오답 사례 — 손오공 → 베지터 (드래곤볼)**
+
+![손오공 검색 결과](../outputs/retrieval_demo/goku_retrieval.png)
+
+같은 작품(드래곤볼) 내 캐릭터끼리 혼동. 곤↔킬루아(헌터×헌터), 손오공↔베지터(드래곤볼) 패턴이 반복됨 — 동일 작품 특유의 화풍·배경이 유사도를 높이는 것으로 분석.
