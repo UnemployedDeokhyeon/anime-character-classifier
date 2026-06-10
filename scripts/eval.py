@@ -50,9 +50,11 @@ def main():
     retriever.build_index(embeddings.copy(), [dataset.classes[l] for l in labels])
 
     retrieved = []
-    for emb in embeddings:
-        scores, idxs = retriever.index.search(emb[None], args.top_k)
-        retrieved.append(labels_arr[idxs[0]])
+    for i, emb in enumerate(embeddings):
+        # top_k+1 검색 후 자기 자신(인덱스 i) 제외
+        _, idxs = retriever.index.search(emb[None], args.top_k + 1)
+        filtered = [idx for idx in idxs[0] if idx != i][: args.top_k]
+        retrieved.append(labels_arr[filtered])
 
     top1 = top_k_accuracy(retrieved, labels_arr, k=1)
     top5 = top_k_accuracy(retrieved, labels_arr, k=5)
