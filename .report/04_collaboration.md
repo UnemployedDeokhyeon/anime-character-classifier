@@ -20,7 +20,6 @@
 | 모델 비교 노트북 작성 | Claude | `notebooks/compare_models.ipynb`, `scripts/compare_models.py` 작성 |
 | 소스 파일 docstring 추가 | Copilot | 전체 소스 파일 docstring 자동 생성 |
 | Retrieval 데모·평가 스크립트 작성 | Claude | `scripts/demo.py` 신규 (query/gallery 분리, FAISS top-k 그리드 시각화), `scripts/eval.py` self-match 오염 제거 및 체크포인트 형식 호환 수정 |
-| 보고서 2.4절 작성 | Claude | Retrieval 정량 평가(Top-1/Top-5/mAP) 표, 검색 결과 그리드 이미지, 오답 패턴 분석 작성 |
 
 ## 4.3 참고 문헌 및 자료 출처
 
