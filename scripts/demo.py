@@ -1,12 +1,17 @@
 """쿼리 이미지 N장을 FAISS 검색해 top-k 결과를 그리드 이미지로 저장한다."""
+import os
+
+# faiss + torch OpenMP 충돌 방지 (macOS)
+os.environ.setdefault("KMP_DUPLICATE_LIB_OK", "TRUE")
+
 import argparse
 import random
 from pathlib import Path
 
+import torch  # torch 먼저 — faiss OpenMP 충돌 방지
 import faiss
 import matplotlib
 import numpy as np
-import torch
 from PIL import Image
 
 matplotlib.use("Agg")
@@ -92,7 +97,7 @@ def main() -> None:
     transform = get_transforms(args.image_size, train=False)
 
     ckpt = torch.load(args.checkpoint, map_location=device)
-    model = EfficientNetEmbedder()
+    model = EfficientNetEmbedder(pretrained=False)
     model.load_state_dict(ckpt["model_state"])
     model.to(device).eval()
 
