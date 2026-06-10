@@ -2,7 +2,7 @@
 import hydra
 import torch
 from omegaconf import DictConfig
-from torch.utils.data import DataLoader, random_split
+from torch.utils.data import DataLoader, Subset, WeightedRandomSampler, random_split
 
 from src.datasets import AnimeCharacterDataset
 from src.losses import ArcFaceLoss
@@ -17,13 +17,31 @@ def main(cfg: DictConfig) -> None:
     seed_everything(42)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    dataset = AnimeCharacterDataset(cfg.data.root, transform=get_transforms(cfg.data.image_size, train=True))
-    n_train = int(len(dataset) * cfg.data.train_split)
-    n_val = len(dataset) - n_train
-    # 같은 transform 객체를 공유하므로 검증에도 학습 augmentation이 적용될 수 있다.
-    train_ds, val_ds = random_split(dataset, [n_train, n_val])
+    # train/val에 서로 다른 transform을 적용하기 위해 같은 root를 두 번 로드한다.
+    # random_split을 동일 seed로 실행하면 인덱스가 일치해 데이터 누수가 없다.
+    train_full = AnimeCharacterDataset(
+        cfg.data.root,
+        transform=get_transforms(cfg.data.image_size, train=True, random_erasing_p=cfg.data.random_erasing_p),
+        min_size=cfg.data.min_image_size,
+    )
+    val_full = AnimeCharacterDataset(
+        cfg.data.root,
+        transform=get_transforms(cfg.data.image_size, train=False),
+        min_size=cfg.data.min_image_size,
+    )
 
-    train_loader = DataLoader(train_ds, batch_size=cfg.data.batch_size, shuffle=True, num_workers=cfg.data.num_workers)
+    n_train = int(len(train_full) * cfg.data.train_split)
+    n_val = len(train_full) - n_train
+    generator = torch.Generator().manual_seed(42)
+    train_indices, val_indices = [s.indices for s in random_split(range(len(train_full)), [n_train, n_val], generator=generator)]
+
+    train_ds = Subset(train_full, train_indices)
+    val_ds = Subset(val_full, val_indices)
+
+    weights = train_full.get_class_weights()[train_indices]
+    sampler = WeightedRandomSampler(weights, num_samples=len(train_ds), replacement=True)
+
+    train_loader = DataLoader(train_ds, batch_size=cfg.data.batch_size, sampler=sampler, num_workers=cfg.data.num_workers)
     val_loader = DataLoader(val_ds, batch_size=cfg.data.batch_size, num_workers=cfg.data.num_workers)
 
     model = EfficientNetEmbedder(
