@@ -16,6 +16,9 @@
 |-----------|------|-----------|
 | 프로젝트 구조 설계 및 코드 리뷰 | Claude | EfficientNetEmbedder 구조, ArcFaceLoss 구현, AnimeRetriever FAISS 래핑 설계 보조 |
 | 학습 스크립트 디버깅 | Claude | MPS autocast 설정, 2-Phase 학습 루프 최적화 |
+| EDA 및 전처리 코드 작성 | Claude | `notebooks/eda.ipynb`, `src/datasets/preprocess.py` 작성 |
+| 모델 비교 노트북 작성 | Claude | `notebooks/compare_models.ipynb`, `scripts/compare_models.py` 작성 |
+| 소스 파일 docstring 추가 | Copilot | 전체 소스 파일 docstring 자동 생성 |
 
 ## 4.3 참고 문헌 및 자료 출처
 
