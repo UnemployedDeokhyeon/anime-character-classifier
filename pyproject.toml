@@ -24,6 +24,7 @@ dependencies = [
     "matplotlib>=3.7.0",
     "seaborn>=0.12.0",
     "polars>=1.41.2",
+    "onnxscript>=0.1.0",
 ]
 
 [project.optional-dependencies]

@@ -337,6 +337,13 @@
   gap: 0.4rem;
 }
 
+.char-empty {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+/* Character chip — now a button */
 .char-chip {
   display: inline-block;
   padding: 0.25rem 0.65rem;
@@ -345,7 +352,9 @@
   border-radius: 100px;
   font-size: 0.8rem;
   color: var(--text-muted);
-  transition: color 0.1s, border-color 0.1s;
+  cursor: pointer;
+  transition: color 0.1s, border-color 0.1s, background 0.1s;
+  font-family: inherit;
 }
 
 .char-chip:hover {
@@ -353,8 +362,69 @@
   border-color: var(--accent);
 }
 
-.char-empty {
-  font-size: 0.875rem;
+.char-chip.selected {
+  color: var(--text);
+  border-color: var(--accent);
+  background: rgba(124, 106, 247, 0.12);
+}
+
+/* Gallery */
+.char-gallery {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.gallery-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.gallery-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.gallery-hint {
+  font-size: 0.75rem;
   color: var(--text-muted);
-  margin: 0;
+}
+
+.gallery-loading {
+  display: flex;
+  justify-content: center;
+  padding: 1.5rem;
+}
+
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 0.5rem;
+}
+
+.gallery-img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  cursor: grab;
+  transition: border-color 0.15s, transform 0.15s, opacity 0.15s;
+}
+
+.gallery-img:hover {
+  border-color: var(--accent);
+  transform: scale(1.04);
+}
+
+.gallery-img:active {
+  cursor: grabbing;
+  opacity: 0.8;
 }

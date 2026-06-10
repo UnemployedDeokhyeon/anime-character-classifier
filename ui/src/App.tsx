@@ -17,6 +17,11 @@ interface CharactersResponse {
   total?: number
 }
 
+interface CharImagesResponse {
+  character: string
+  images: string[]
+}
+
 export default function App() {
   const [image, setImage] = useState<string | null>(null)
   const [file, setFile] = useState<File | null>(null)
@@ -26,6 +31,9 @@ export default function App() {
   const [dragging, setDragging] = useState(false)
   const [characters, setCharacters] = useState<CharactersResponse | null>(null)
   const [charFilter, setCharFilter] = useState('')
+  const [selectedChar, setSelectedChar] = useState<string | null>(null)
+  const [charImages, setCharImages] = useState<string[]>([])
+  const [charImgLoading, setCharImgLoading] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -43,12 +51,28 @@ export default function App() {
     setError(null)
   }, [])
 
+  const handleUrlAsFile = useCallback(async (url: string) => {
+    try {
+      const res = await fetch(url)
+      const blob = await res.blob()
+      const f = new File([blob], 'image.jpg', { type: blob.type || 'image/jpeg' })
+      handleFile(f)
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    } catch {
+      // ignore
+    }
+  }, [handleFile])
+
   const onDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault()
     setDragging(false)
+    // 파일 드롭
     const f = e.dataTransfer.files[0]
-    if (f) handleFile(f)
-  }, [handleFile])
+    if (f) { handleFile(f); return }
+    // 갤러리 이미지 드롭
+    const url = e.dataTransfer.getData('text/plain')
+    if (url) handleUrlAsFile(url)
+  }, [handleFile, handleUrlAsFile])
 
   const onInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0]
@@ -83,6 +107,26 @@ export default function App() {
     if (inputRef.current) inputRef.current.value = ''
   }
 
+  const selectChar = async (c: string) => {
+    if (selectedChar === c) { setSelectedChar(null); setCharImages([]); return }
+    setSelectedChar(c)
+    setCharImages([])
+    setCharImgLoading(true)
+    try {
+      const res = await fetch(`/api/characters/${encodeURIComponent(c)}/images`)
+      const d: CharImagesResponse = await res.json()
+      setCharImages(d.images)
+    } catch {
+      setCharImages([])
+    } finally {
+      setCharImgLoading(false)
+    }
+  }
+
+  const filteredChars = characters?.characters.filter((c) =>
+    c.toLowerCase().includes(charFilter.toLowerCase())
+  ) ?? []
+
   return (
     <div className="app">
       <header className="header">
@@ -114,41 +158,24 @@ export default function App() {
                 </svg>
               </div>
               <span className="drop-text">이미지 드래그 또는 클릭하여 선택</span>
-              <span className="drop-sub">PNG, JPG, WEBP 지원</span>
+              <span className="drop-sub">갤러리 이미지를 여기로 드래그할 수도 있음</span>
             </div>
           )}
-          <input
-            ref={inputRef}
-            type="file"
-            accept="image/*"
-            onChange={onInput}
-            style={{ display: 'none' }}
-          />
+          <input ref={inputRef} type="file" accept="image/*" onChange={onInput} style={{ display: 'none' }} />
         </div>
 
         <div className="actions">
           {image && (
             <>
-              <button className="btn btn-secondary" onClick={reset}>
-                초기화
-              </button>
+              <button className="btn btn-secondary" onClick={reset}>초기화</button>
               <button className="btn btn-primary" onClick={predict} disabled={loading}>
-                {loading ? (
-                  <span className="loading-text">
-                    <span className="spinner" />
-                    분석 중...
-                  </span>
-                ) : '캐릭터 검색'}
+                {loading ? <span className="loading-text"><span className="spinner" />분석 중...</span> : '캐릭터 검색'}
               </button>
             </>
           )}
         </div>
 
-        {error && (
-          <div className="alert alert-error">
-            <strong>오류:</strong> {error}
-          </div>
-        )}
+        {error && <div className="alert alert-error"><strong>오류:</strong> {error}</div>}
 
         {results && !results.model_loaded && (
           <div className="alert alert-warn">
@@ -157,14 +184,12 @@ export default function App() {
         )}
 
         {results?.model_loaded && results.results.length === 0 && (
-          <div className="alert alert-warn">
-            결과 없음 — 인덱스가 비어있거나 유사한 캐릭터 없음
-          </div>
+          <div className="alert alert-warn">결과 없음 — 인덱스가 비어있거나 유사한 캐릭터 없음</div>
         )}
 
         {results?.model_loaded && results.results.length > 0 && (
           <section className="results">
-            <h2 className="results-title">검색 결과</h2>
+            <h2 className="results-title">분류 결과</h2>
             <div className="result-list">
               {results.results.map((r, i) => (
                 <div className="result-item" key={i}>
@@ -172,10 +197,7 @@ export default function App() {
                   <div className="result-body">
                     <span className="result-name">{r.character}</span>
                     <div className="bar-track">
-                      <div
-                        className="bar-fill"
-                        style={{ width: `${(r.score * 100).toFixed(1)}%` }}
-                      />
+                      <div className="bar-fill" style={{ width: `${(r.score * 100).toFixed(1)}%` }} />
                     </div>
                   </div>
                   <span className="result-score">{(r.score * 100).toFixed(1)}%</span>
@@ -204,17 +226,54 @@ export default function App() {
                 />
               )}
             </div>
+
             {!characters.model_loaded ? (
               <p className="char-empty">모델 미로드 — 인덱스 빌드 후 표시됩니다</p>
             ) : characters.characters.length === 0 ? (
               <p className="char-empty">인덱스가 비어있습니다</p>
             ) : (
               <div className="char-grid">
-                {characters.characters
-                  .filter((c) => c.toLowerCase().includes(charFilter.toLowerCase()))
-                  .map((c) => (
-                    <span className="char-chip" key={c}>{c}</span>
-                  ))}
+                {filteredChars.map((c) => (
+                  <button
+                    className={`char-chip${selectedChar === c ? ' selected' : ''}`}
+                    key={c}
+                    onClick={() => selectChar(c)}
+                  >
+                    {c}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {selectedChar && (
+              <div className="char-gallery">
+                <div className="gallery-header">
+                  <span className="gallery-title">{selectedChar}</span>
+                  <span className="gallery-hint">이미지를 위 분석창으로 드래그하면 검색</span>
+                </div>
+                {charImgLoading ? (
+                  <div className="gallery-loading"><span className="spinner" /></div>
+                ) : charImages.length === 0 ? (
+                  <p className="char-empty">이미지 없음</p>
+                ) : (
+                  <div className="gallery-grid">
+                    {charImages.map((src) => (
+                      <img
+                        key={src}
+                        src={src}
+                        alt={selectedChar}
+                        className="gallery-img"
+                        draggable
+                        onDragStart={(e) => {
+                          e.dataTransfer.setData('text/plain', src)
+                          e.dataTransfer.effectAllowed = 'copy'
+                        }}
+                        onClick={() => handleUrlAsFile(src)}
+                        title="클릭 또는 드래그하여 검색"
+                      />
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </section>

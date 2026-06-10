@@ -7,10 +7,12 @@ services:
       - "2000:8000"
     volumes:
       - ./checkpoints:/app/checkpoints
+      - ./data:/app/data
     environment:
       ONNX_PATH: checkpoints/model.onnx
       INDEX_PATH: checkpoints/index.faiss
       LABELS_PATH: checkpoints/labels.npy
+      TOP_K: "5"
 
   ui:
     build:
