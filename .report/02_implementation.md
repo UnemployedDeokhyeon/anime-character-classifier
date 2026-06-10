@@ -147,3 +147,27 @@ results = retriever.search("query.jpg", top_k=5)
 ### 모델 비교 바차트
 
 ![비교 요약](../outputs/comparison/summary.png)
+
+---
+
+### ArcFace vs CrossEntropy 비교 실험
+
+backbone을 EfficientNet-B0으로 고정하고 **손실 함수**만 다르게 학습해 ArcFace의 효과를 측정했다.
+
+| 항목 | 값 |
+|------|-----|
+| Backbone | EfficientNet-B0 (4.0M params) |
+| 비교 대상 | CrossEntropy (분류 헤드) vs ArcFace (임베딩 헤드, scale=30, margin=0.5) |
+| Phase 1 | 3 epoch, LR=1e-3 |
+| Phase 2 | 7 epoch, LR=1e-4, CosineAnnealingLR |
+
+**평가 지표**
+
+- CE: top-1 분류 정확도
+- ArcFace: top-1 / top-5 (코사인 유사도 분류기), Recall@1 / Recall@5 (FAISS retrieval)
+
+**결과** (`scripts/compare_loss.py` 실행 후 `outputs/loss_comparison/summary.csv` 참고)
+
+![CE vs ArcFace 비교](../outputs/loss_comparison/summary_bar.png)
+
+ArcFace는 단순 분류 정확도 외에 **Recall@1 / Recall@5**를 통해 retrieval 시스템으로서의 실제 검색 품질까지 측정할 수 있다. 새로운 캐릭터를 인덱스에 추가해도 모델 재학습 없이 검색이 가능하다는 점이 CE 분류 모델과의 핵심 차이다.
