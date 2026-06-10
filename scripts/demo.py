@@ -83,6 +83,7 @@ def draw_grid(
 def main() -> None:
     parser = argparse.ArgumentParser(description="FAISS retrieval 결과를 이미지 그리드로 저장한다.")
     parser.add_argument("--checkpoint", required=True, help="학습된 체크포인트 경로")
+    parser.add_argument("--backbone", default="efficientnet_b7", help="timm 백본 모델명")
     parser.add_argument("--data-root", default="data/processed", help="캐릭터 폴더 루트")
     parser.add_argument("--n-queries", type=int, default=5, help="시각화할 쿼리 이미지 수")
     parser.add_argument("--top-k", type=int, default=5, help="검색 결과 상위 K개")
@@ -96,9 +97,14 @@ def main() -> None:
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     transform = get_transforms(args.image_size, train=False)
 
-    ckpt = torch.load(args.checkpoint, map_location=device)
-    model = EfficientNetEmbedder(pretrained=False)
-    model.load_state_dict(ckpt["model_state"])
+    raw = torch.load(args.checkpoint, map_location=device, weights_only=False)
+    model = EfficientNetEmbedder(backbone=args.backbone, pretrained=False)
+    if isinstance(raw, dict) and "model_state" in raw:
+        # train.py 저장 형식
+        model.load_state_dict(raw["model_state"])
+    else:
+        # raw backbone state dict (릴리즈 체크포인트 형식) — classifier 키 무시
+        model.backbone.load_state_dict(raw, strict=False)
     model.to(device).eval()
 
     samples = collect_samples(Path(args.data_root))
