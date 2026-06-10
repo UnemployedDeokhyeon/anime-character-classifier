@@ -14,8 +14,13 @@ def seed_everything(seed: int = 42) -> None:
     torch.backends.cudnn.deterministic = True
 
 
-def get_transforms(image_size: int = 224, train: bool = True) -> transforms.Compose:
+def get_transforms(
+    image_size: int = 224,
+    train: bool = True,
+    random_erasing_p: float = 0.2,
+) -> transforms.Compose:
     """학습/추론 단계에 맞는 이미지 전처리 파이프라인을 반환한다."""
+    normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
     if train:
         return transforms.Compose([
             transforms.Resize((image_size + 32, image_size + 32)),
@@ -23,10 +28,11 @@ def get_transforms(image_size: int = 224, train: bool = True) -> transforms.Comp
             transforms.RandomHorizontalFlip(),
             transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2),
             transforms.ToTensor(),
-            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+            normalize,
+            transforms.RandomErasing(p=random_erasing_p, scale=(0.02, 0.2)),
         ])
     return transforms.Compose([
         transforms.Resize((image_size, image_size)),
         transforms.ToTensor(),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+        normalize,
     ])
