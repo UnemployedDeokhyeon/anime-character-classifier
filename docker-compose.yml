@@ -1,0 +1,23 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: api/Dockerfile
+    ports:
+      - "2000:8000"
+    volumes:
+      - ./checkpoints:/app/checkpoints
+    environment:
+      ONNX_PATH: checkpoints/model.onnx
+      INDEX_PATH: checkpoints/index.faiss
+      LABELS_PATH: checkpoints/labels.npy
+
+  ui:
+    build:
+      context: ui
+    ports:
+      - "1000:5173"
+    environment:
+      VITE_API_HOST: http://api:8000
+    depends_on:
+      - api
