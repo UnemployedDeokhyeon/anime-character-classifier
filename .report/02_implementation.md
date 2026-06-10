@@ -22,6 +22,27 @@
 
 Kaggle 데이터셋에서 `image_jpg_url` 컬럼의 URL로 이미지를 다운로드하고, 캐릭터별 폴더(`data/processed/<캐릭터명 - 작품명>/`)로 정리했다. `AnimeCharacterDataset`은 이 폴더 구조를 `ImageFolder` 방식으로 읽어 클래스(캐릭터) 레이블을 자동 부여한다.
 
+### 이미지 품질 필터링
+
+별도의 해상도 필터는 적용하지 않았다. 대신 `AnimeCharacterDataset.__getitem__`에서 PNG 투명도 채널(`mode='P'` + transparency)을 RGBA로 변환 후 RGB로 병합해, 투명 배경 이미지에서 발생하는 검은 채널 오염을 방지했다.
+
+### 클래스 불균형
+
+클래스당 이미지 수는 최소 85장 ~ 최대 105장으로 비교적 균등하여 별도의 WeightedRandomSampler나 오버샘플링을 적용하지 않았다.
+
+### Augmentation 전략
+
+소규모 데이터(1,432장)에서 과적합을 억제하기 위해 학습 시에만 아래 augmentation을 적용했다(`get_transforms(train=True)`).
+
+| 기법 | 파라미터 | 목적 |
+|------|----------|------|
+| Resize → RandomCrop | 256→224 | 위치 불변성 확보 |
+| RandomHorizontalFlip | p=0.5 | 좌우 대칭 다양성 |
+| ColorJitter | brightness/contrast/saturation=0.2 | 조명·색감 변화 대응 |
+| Normalize | mean=(0.485,0.456,0.406), std=(0.229,0.224,0.225) | ImageNet 사전학습 분포에 맞춤 |
+
+검증/추론 시에는 Resize(224) + Normalize만 적용해 데이터 누수를 방지했다.
+
 **최종 데이터셋 규모:**
 
 | 항목 | 값 |
