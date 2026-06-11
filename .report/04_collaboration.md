@@ -19,6 +19,7 @@
 | EDA 및 전처리 코드 작성 | Claude | `notebooks/eda.ipynb`, `src/datasets/preprocess.py` 작성 |
 | 모델 비교 노트북 작성 | Claude | `notebooks/compare_models.ipynb`, `scripts/compare_models.py` 작성 |
 | 소스 파일 docstring 추가 | Copilot | 전체 소스 파일 docstring 자동 생성 |
+| Retrieval 데모·평가 스크립트 작성 | Claude | `scripts/demo.py` 신규 (query/gallery 분리, FAISS top-k 그리드 시각화), `scripts/eval.py` self-match 오염 제거 및 체크포인트 형식 호환 수정 |
 
 ## 4.3 참고 문헌 및 자료 출처
 
